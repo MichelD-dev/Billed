@@ -18,13 +18,15 @@ export default class NewBill {
     new Logout({ document, localStorage, onNavigate });
   }
 
-  fileValidation = file => {
+  fileValidation = file => { //TODO
     const fileTypes = ["image/jpeg", "image/jpg", "image/png"];
     if (!fileTypes.includes(file.type)) {
+      // alert("Vous devez selectionner une image au format jpg, jpeg ou png");
       // throw "Vous devez selectionner une image au format jpg, jpeg ou png";
-      alert("Vous devez selectionner une image au format jpg, jpeg ou png");
+      this.document.querySelector(`input[data-testid="file"]`).classList.add('is-invalid')
       return false;
     }
+    this.document.querySelector(`input[data-testid="file"]`).classList.remove('is-invalid')
     return true;
   };
 
@@ -38,7 +40,7 @@ export default class NewBill {
     const email = JSON.parse(localStorage.getItem("user")).email;
     formData.append("file", file);
     formData.append("email", email);
-    //  console.log(this.fileValidation(file));
+
     this.fileValidation(file) &&
       this.store //TODO
         .bills()
@@ -58,13 +60,7 @@ export default class NewBill {
   };
 
   handleSubmit = e => {
-    console.log(this.fileValidation(file));
-    // if (!this.fileValidation(file)) return;
     e.preventDefault();
-    console.log(
-      'e.target.querySelector(`input[data-testid="datepicker"]`).value',
-      e.target.querySelector(`input[data-testid="datepicker"]`).value
-    );
     const email = JSON.parse(localStorage.getItem("user")).email;
     const bill = {
       email,
@@ -84,6 +80,7 @@ export default class NewBill {
       fileName: this.fileName,
       status: "pending",
     };
+     if (!this.fileName) return; //TODO
     this.updateBill(bill);
     this.onNavigate(ROUTES_PATH["Bills"]);
   };
