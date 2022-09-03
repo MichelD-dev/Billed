@@ -1,14 +1,16 @@
 /**
  * @jest-environment jsdom
  */
-
-import { screen, waitFor } from "@testing-library/dom";
+import { fireEvent, screen, waitFor } from "@testing-library/dom";
 import BillsUI from "../views/BillsUI.js";
 import { bills } from "../fixtures/bills.js";
-import { ROUTES_PATH } from "../constants/routes.js";
+import { ROUTES, ROUTES_PATH } from "../constants/routes";
 import { localStorageMock } from "../__mocks__/localStorage.js";
 
 import router from "../app/Router.js";
+import NewBillUI from "../views/NewBillUI.js";
+import NewBill from "../containers/NewBill.js";
+import Bills from "../containers/Bills.js";
 
 describe("Given I am connected as an employee", () => {
   describe("When I am on Bills Page", () => {
@@ -29,7 +31,7 @@ describe("Given I am connected as an employee", () => {
       window.onNavigate(ROUTES_PATH.Bills);
       await waitFor(() => screen.getByTestId("icon-window"));
       const windowIcon = screen.getByTestId("icon-window");
-      expect(windowIcon.classList.contains('active-icon')).toBe(true) //TODO 5 
+      expect(windowIcon.classList.contains("active-icon")).toBe(true); //TODO 5
     });
     test("Then bills should be ordered from earliest to latest", () => {
       document.body.innerHTML = BillsUI({ data: bills });
@@ -44,5 +46,39 @@ describe("Given I am connected as an employee", () => {
       console.log(datesSorted);
       expect(dates).toEqual(datesSorted);
     });
+    //TODO 6
+    describe("When I click on New Bill Button", () => {
+      test("I should be sent on New Bill form", () => {
+        const onNavigate = pathname => {
+          document.body.innerHTML = ROUTES({ pathname });
+        };
+
+        Object.defineProperty(window, "localStorage", {
+          value: localStorageMock,
+        });
+        window.localStorage.setItem(
+          "user",
+          JSON.stringify({
+            type: "Employee",
+          })
+        );
+        const bills = new Bills({
+          document,
+          onNavigate,
+          store: null,
+          localStorage: window.localStorage,
+        });
+
+        document.body.innerHTML = BillsUI({ data: bills });
+
+        const buttonNewBill = screen.getByTestId("btn-new-bill");
+        expect(buttonNewBill).toBeTruthy(); //TODO nécessaire?
+        const handleClickNewBill = jest.fn(e => bills.handleClickNewBill(e));
+        buttonNewBill.addEventListener("click", handleClickNewBill);
+        fireEvent.click(buttonNewBill);
+        expect(handleClickNewBill).toHaveBeenCalled();
+      });
+    }
+    );
   });
 });

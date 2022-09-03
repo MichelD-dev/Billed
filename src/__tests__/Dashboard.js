@@ -12,6 +12,7 @@ import { localStorageMock } from "../__mocks__/localStorage.js"
 import mockStore from "../__mocks__/store"
 import { bills } from "../fixtures/bills"
 import router from "../app/Router"
+import Bills from "../containers/Bills.js"
 
 jest.mock("../app/store", () => mockStore)
 
@@ -198,8 +199,8 @@ describe('Given I am connected as Admin, and I am on Dashboard page, and I click
         document.body.innerHTML = ROUTES({ pathname })
       }
       const store = null
-      const dashboard = new Dashboard({
-        document, onNavigate, store, bills, localStorage: window.localStorage
+      const dashboard = new Bills({
+        document, onNavigate, store, localStorage: window.localStorage
       })
       const refuseButton = screen.getByTestId("btn-refuse-bill-d")
       const handleRefuseSubmit = jest.fn((e) => dashboard.handleRefuseSubmit(e, bills[0]))

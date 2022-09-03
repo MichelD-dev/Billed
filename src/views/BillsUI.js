@@ -21,7 +21,7 @@ const row = bill => {
 };
 
 const rows = data => {
-  console.log(data[0].date);
+  // console.log(data[0].date);
 
   return data && data.length
     ? data
