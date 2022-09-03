@@ -155,7 +155,7 @@ export default class {
     }
 
     bills.forEach(bill => {
-      $(`#open-bill${bill.id}`).off("click"); //TODO
+      $(`#open-bill${bill.id}`).off("click"); //TODO 4 - On remove l'eventListener exiqtant avant d'en ajouter un
       $(`#open-bill${bill.id}`).on("click", e => {
         this.handleEditTicket(e, bill, bills);
       });
