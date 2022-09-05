@@ -1,7 +1,8 @@
 /**
  * @jest-environment jsdom
  */
-import { fireEvent, screen, waitFor, within } from "@testing-library/dom";
+import { configure, fireEvent, screen, waitFor } from "@testing-library/dom";
+import "@testing-library/jest-dom";
 import BillsUI from "../views/BillsUI.js";
 import { bills } from "../fixtures/bills.js";
 import { ROUTES, ROUTES_PATH } from "../constants/routes";
@@ -11,6 +12,12 @@ import router from "../app/Router.js";
 import Bills from "../containers/Bills.js";
 
 jest.mock("../app/store", () => mockedStore);
+
+beforeEach(() => {
+  configure({
+    throwSuggestions: true,
+  });
+});
 
 describe("Given I am connected as an employee", () => {
   describe("When I am on Bills Page", () => {
@@ -46,9 +53,43 @@ describe("Given I am connected as an employee", () => {
       // console.log(datesSorted);
       expect(dates).toEqual(datesSorted);
     });
+
+    // -------------------------------------------------------- //
+    // -------------------------------------------------------- //
+    // -------------------------------------------------------- //
+
+    describe("When a bill data is corrupted", () => {
+      test("the back-end should return a bill with unformatted date", async () => {
+        // expect.assertions(1);
+        // const initialBills = await mockedStore.bills().list();
+        // const corruptBills = [{ ...initialBills[0] }];
+        // corruptBills[0].date = "2004=04-04";
+        // console.log(corruptBills);
+        // const test = () => {
+        //   return [...initialBills, corruptBills];
+        // };
+        // console.log([...initialBills, corruptBills]);
+        // console.log(Bills);
+        // jest.spyOn(Bills);
+        // console.log(test());
+        // expect(() => test()).toThrow();
+        // expect(
+        //   mockedStore.bills.mockImplementationOnce(() => {
+        //     return Promise.resolve([...initialBills, corruptBills]);
+        //   })
+        // ).toThrow();
+        // .catch(e => expect(e).toMatch("error"));
+        // try {
+        //   await mockedStore.bills().list();
+        // } catch (e) {console.log(e);
+        //   expect(e).toMatch('error');
+        // }
+      });
+    });
+
     //TODO 6
     describe("When I click on New Bill Button", () => {
-      test("I should be sent on New Bill form", () => {
+      test("Then I should be sent on New Bill form", () => {
         const onNavigate = pathname => {
           document.body.innerHTML = ROUTES({ pathname });
         };
@@ -71,7 +112,9 @@ describe("Given I am connected as an employee", () => {
 
         document.body.innerHTML = BillsUI({ data: bills });
 
-        const buttonNewBill = screen.getByTestId("btn-new-bill");
+        const buttonNewBill = screen.getByRole("button", {
+          name: /nouvelle note de frais/i,
+        });
         expect(buttonNewBill).toBeTruthy(); //TODO nécessaire?
         const handleClickNewBill = jest.fn(e => bills.handleClickNewBill(e));
         buttonNewBill.addEventListener("click", handleClickNewBill);
@@ -79,8 +122,9 @@ describe("Given I am connected as an employee", () => {
         expect(handleClickNewBill).toHaveBeenCalled();
       });
     });
+
     describe("When I click on one eye icon", () => {
-      test("I should open a modal displaying the uploaded image file", () => {
+      test("Then I should open a modal displaying the uploaded image file", async () => {
         const onNavigate = pathname => {
           document.body.innerHTML = ROUTES({ pathname });
         };
@@ -96,33 +140,37 @@ describe("Given I am connected as an employee", () => {
           })
         );
 
-        const billPage = new Bills({
+        const billsPage = new Bills({
           document,
           onNavigate,
           store: mockedStore,
           localStorage: window.localStorage,
         });
 
-        $.fn.modal = jest.fn();
+        $.fn.modal = jest.fn(); //mock de la modale Bootstrap
 
         document.body.innerHTML = BillsUI({ data: bills });
 
-        const billsTable = screen.getByTestId("tbody");
-        const iconEyes = within(billsTable).getAllByTestId("icon-eye");
+        const iconEyes = screen.getAllByTestId("icon-eye");
 
-        const handleClickIconEye = jest.fn(icon =>
-          billPage.handleClickIconEye(icon)
+        const mockedHandleClickIconEye = jest.fn(icon =>
+          billsPage.handleClickIconEye(icon)
         );
-        iconEyes.forEach(iconEye => {
-          iconEye.addEventListener("click", () => handleClickIconEye(iconEye));
-          fireEvent.click(iconEye);
-        });
-        expect(handleClickIconEye).toHaveBeenCalled();
-        expect(screen.getByText("Justificatif")).toBeVisible()
+
+        if (iconEyes.length !== 0)
+          iconEyes.forEach(async iconEye => {
+            iconEye.addEventListener("click", () =>
+              mockedHandleClickIconEye(iconEye)
+            );
+            fireEvent.click(iconEye);
+            expect(mockedHandleClickIconEye).toHaveBeenCalled();
+            await waitFor(
+              () => screen.getByText("Justificatif")
+              //TODO
+            );
+            expect(screen.getByText("Justificatif")).toBeVisible();
+          });
       });
-    });
-    describe("When I click on one eye icon", () => {
-      test.todo("I should open a modal displaying the uploaded image file");
     });
   });
 });
