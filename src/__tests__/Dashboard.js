@@ -325,6 +325,7 @@ describe("Given I am a user connected as Admin", () => {
       document.body.append(root);
       router();
       window.onNavigate(ROUTES_PATH.Dashboard);
+      // FIXME on teste juste les données UI en dur???
       await waitFor(() => screen.getByText("Validations"));
       const contentPending = await screen.getByText("En attente (1)");
       expect(contentPending).toBeTruthy();

@@ -1,8 +1,9 @@
 /**
  * @jest-environment jsdom
  */
-import { configure, fireEvent, screen, waitFor } from "@testing-library/dom";
+import { configure, screen, waitFor, within } from "@testing-library/dom";
 import "@testing-library/jest-dom";
+import userEvent from "@testing-library/user-event";
 import BillsUI from "../views/BillsUI.js";
 import { bills } from "../fixtures/bills.js";
 import { ROUTES, ROUTES_PATH } from "../constants/routes";
@@ -13,11 +14,11 @@ import Bills from "../containers/Bills.js";
 
 jest.mock("../app/store", () => mockedStore);
 
-beforeEach(() => {
-  configure({
-    throwSuggestions: true,
-  });
-});
+// beforeEach(() => {
+//   configure({
+//     throwSuggestions: true,
+//   });
+// });
 
 describe("Given I am connected as an employee", () => {
   describe("When I am on Bills Page", () => {
@@ -118,13 +119,13 @@ describe("Given I am connected as an employee", () => {
         expect(buttonNewBill).toBeTruthy(); //TODO nécessaire?
         const handleClickNewBill = jest.fn(e => bills.handleClickNewBill(e));
         buttonNewBill.addEventListener("click", handleClickNewBill);
-        fireEvent.click(buttonNewBill);
+        userEvent.click(buttonNewBill);
         expect(handleClickNewBill).toHaveBeenCalled();
       });
     });
 
     describe("When I click on one eye icon", () => {
-      test("Then I should open a modal displaying the uploaded image file", async () => {
+      test.only("Then a modal should open", async () => {
         const onNavigate = pathname => {
           document.body.innerHTML = ROUTES({ pathname });
         };
@@ -147,29 +148,107 @@ describe("Given I am connected as an employee", () => {
           localStorage: window.localStorage,
         });
 
-        $.fn.modal = jest.fn(); //mock de la modale Bootstrap
-
         document.body.innerHTML = BillsUI({ data: bills });
 
         const iconEyes = screen.getAllByTestId("icon-eye");
 
-        const mockedHandleClickIconEye = jest.fn(icon =>
-          billsPage.handleClickIconEye(icon)
-        );
+        const handleClickIconEye = jest.fn(billsPage.handleClickIconEye);
 
-        if (iconEyes.length !== 0)
-          iconEyes.forEach(async iconEye => {
+        const modale = document.getElementById("modaleFile");
+
+        $.fn.modal = jest.fn(() => modale.classList.add("show")); //mock de la modale Bootstrap
+
+        if (iconEyes.length !== 0) {
+          iconEyes.forEach(iconEye => {
             iconEye.addEventListener("click", () =>
-              mockedHandleClickIconEye(iconEye)
+              handleClickIconEye(iconEye)
             );
-            fireEvent.click(iconEye);
-            expect(mockedHandleClickIconEye).toHaveBeenCalled();
-            await waitFor(
-              () => screen.getByText("Justificatif")
-              //TODO
-            );
-            expect(screen.getByText("Justificatif")).toBeVisible();
+            userEvent.click(iconEye);
+
+            expect(handleClickIconEye).toHaveBeenCalled();
+
+            expect(modale).toBeVisible();
+
+            // expect(
+            //   await waitFor(() =>
+            //     screen.findByRole("img", { name: /bill/i, hidden: true })
+            //   )
+            // ).toBeVisible();
+
+            expect(modale).toHaveClass("show");
+            expect(modale).toBeTruthy();
           });
+        }
+      });
+    });
+
+    // test d'intégration GET
+    describe("When an error occurs on API", () => {
+      beforeEach(() => {
+        jest.spyOn(mockedStore, "bills");
+        Object.defineProperty(window, "localStorage", {
+          value: localStorageMock,
+        });
+        window.localStorage.setItem(
+          "user",
+          JSON.stringify({
+            type: "Employee",
+            email: "a@a",
+          })
+        );
+        const root = document.createElement("div");
+        root.setAttribute("id", "root");
+        document.body.appendChild(root);
+        router();
+      });
+      test("fetches bills from mock API GET", async () => {
+        localStorage.setItem(
+          "user",
+          JSON.stringify({ type: "Employee", email: "a@a" })
+        );
+        const root = document.createElement("div");
+        root.setAttribute("id", "root");
+        document.body.append(root);
+        router();
+        window.onNavigate(ROUTES_PATH.Bills);
+        await waitFor(() => screen.getByText("Mes notes de frais"));
+        const newBillBtn = await screen.findByRole("button", {
+          name: /nouvelle note de frais/i,
+        });
+        expect(newBillBtn).toBeTruthy();
+        const billsTable = document.querySelector("#example");
+        expect(billsTable).toBeTruthy();
+        // const billsTableRows = screen.getByTestId("tbody"); //FIXME plusieurs tbody trouvés?
+        expect(within(billsTable).queryAllByRole("row")).toHaveLength(5);
+      });
+
+      test("fetches bills from an API and fails with 404 message error", async () => {
+        mockedStore.bills.mockImplementationOnce(() => {
+          return {
+            list: () => {
+              return Promise.reject(new Error("Erreur 404"));
+            },
+          };
+        });
+        window.onNavigate(ROUTES_PATH.Bills);
+        await new Promise(process.nextTick);
+        const message = screen.getByText(/Erreur 404/);
+        expect(message).toBeTruthy();
+      });
+
+      test("fetches messages from an API and fails with 500 message error", async () => {
+        mockedStore.bills.mockImplementationOnce(() => {
+          return {
+            list: () => {
+              return Promise.reject(new Error("Erreur 500"));
+            },
+          };
+        });
+
+        window.onNavigate(ROUTES_PATH.Bills);
+        await new Promise(process.nextTick);
+        const message = screen.getByText(/Erreur 500/);
+        expect(message).toBeTruthy();
       });
     });
   });
