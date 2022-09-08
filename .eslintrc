@@ -11,11 +11,11 @@
     "plugin:jest/style"
   ],
   "plugins": ["jest"],
-  // "parser": "@babel/eslint-parser",
-  // "parserOptions": {
-  //   "ecmaVersion": 6,
-  //   "sourceType": "module"
-  // },
+  "parser": "@babel/eslint-parser",
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "sourceType": "module"
+  },
   "rules": {
     "no-undef": 0,
     "no-unused-vars": 1
