@@ -18,17 +18,22 @@ export default class NewBill {
     new Logout({ document, localStorage, onNavigate });
   }
 
-  fileValidation = file => { //TODO 3 - On verifie le type de fichier à uploader
+  fileValidation = file => {
+    //TODO 3 - On verifie le type de fichier à uploader
     const fileTypes = ["image/jpeg", "image/jpg", "image/png"];
     if (!fileTypes.includes(file.type)) {
-      this.document.querySelector(`input[data-testid="file"]`).classList.add('is-invalid')
+      this.document
+        .querySelector(`input[data-testid="file"]`)
+        .classList.add("is-invalid");
       return false;
     }
-    this.document.querySelector(`input[data-testid="file"]`).classList.remove('is-invalid')
+    this.document
+      .querySelector(`input[data-testid="file"]`)
+      .classList.remove("is-invalid");
     return true;
   };
 
-  handleChangeFile = e => {
+  handleChangeFile = async e => {
     e.preventDefault();
     const file = this.document.querySelector(`input[data-testid="file"]`)
       .files[0];
@@ -49,7 +54,6 @@ export default class NewBill {
           },
         })
         .then(({ fileUrl, key }) => {
-          console.log(fileUrl);
           this.billId = key;
           this.fileUrl = fileUrl;
           this.fileName = fileName;
@@ -78,13 +82,15 @@ export default class NewBill {
       fileName: this.fileName,
       status: "pending",
     };
-     if (!this.fileName) return; //TODO 3 - si pas de fichier selectionné, submit impossible
+
+    if (!this.fileName) return;
+    //TODO 3 - si pas de fichier selectionné, submit impossible
     this.updateBill(bill);
     this.onNavigate(ROUTES_PATH["Bills"]);
   };
 
   // not need to cover this function by tests
-   /* istanbul ignore next */
+  /* istanbul ignore next */
   updateBill = bill => {
     if (this.store) {
       this.store

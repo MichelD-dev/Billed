@@ -1,3 +1,4 @@
+/* eslint-disable jest/no-mocks-import */
 /**
  * @jest-environment jsdom
  */
@@ -12,7 +13,6 @@ import { localStorageMock } from "../__mocks__/localStorage.js";
 import mockStore from "../__mocks__/store";
 import { bills } from "../fixtures/bills";
 import router from "../app/Router";
-import Bills from "../containers/Bills.js";
 
 jest.mock("../app/store", () => mockStore);
 
@@ -20,19 +20,19 @@ describe("Given I am connected as an Admin", () => {
   describe("When I am on Dashboard page, there are bills, and there is one pending", () => {
     test("Then, filteredBills by pending status should return 1 bill", () => {
       const filtered_bills = filteredBills(bills, "pending");
-      expect(filtered_bills.length).toBe(1);
+      expect(filtered_bills).toHaveLength(1);
     });
   });
   describe("When I am on Dashboard page, there are bills, and there is one accepted", () => {
     test("Then, filteredBills by accepted status should return 1 bill", () => {
       const filtered_bills = filteredBills(bills, "accepted");
-      expect(filtered_bills.length).toBe(1);
+      expect(filtered_bills).toHaveLength(1);
     });
   });
   describe("When I am on Dashboard page, there are bills, and there is two refused", () => {
     test("Then, filteredBills by accepted status should return 2 bills", () => {
       const filtered_bills = filteredBills(bills, "refused");
-      expect(filtered_bills.length).toBe(2);
+      expect(filtered_bills).toHaveLength(2);
     });
   });
   describe("When I am on Dashboard page but it is loading", () => {
@@ -325,7 +325,6 @@ describe("Given I am a user connected as Admin", () => {
       document.body.append(root);
       router();
       window.onNavigate(ROUTES_PATH.Dashboard);
-      // FIXME on teste juste les données UI en dur???
       await waitFor(() => screen.getByText("Validations"));
       const contentPending = await screen.getByText("En attente (1)");
       expect(contentPending).toBeTruthy();

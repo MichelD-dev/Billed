@@ -8,7 +8,7 @@ export default class Logout {
     $('#layout-disconnect').click(this.handleClick)
   }
   
-  handleClick = (e) => {
+  handleClick = () => {
     this.localStorage.clear()
     this.onNavigate(ROUTES_PATH['Login'])
   }

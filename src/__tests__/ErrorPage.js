@@ -1,3 +1,4 @@
+/* eslint-disable jest/no-mocks-import */
 /**
  * @jest-environment jsdom
  */
@@ -11,7 +12,7 @@ describe('Given I am connected on app (as an Employee or an HR admin)', () => {
       const html = ErrorPage()
       document.body.innerHTML = html
       expect(screen.getAllByText('Erreur')).toBeTruthy()
-      expect(screen.getByTestId('error-message').innerHTML.trim().length).toBe(0)
+      expect(screen.getByTestId('error-message').innerHTML.trim()).toHaveLength(0)
     })
   })
   describe('When ErrorPage is called with error message in its signature', () => {
