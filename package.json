@@ -6,6 +6,7 @@
     "watchb": "jest Bills.js --watch",
     "watchn": "jest newBill.js --watch",
     "watchd": "jest dashboard.js --watch",
+    "watchl": "jest login.js --watch",
     "lint": "eslint . --ignore-path .gitignore"
   },
   "jest": {
